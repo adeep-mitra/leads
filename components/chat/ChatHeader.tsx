@@ -1,6 +1,6 @@
 import type React from "react"
 import { Button } from "@/components/ui/button"
-import { MessageCircle, ChevronRight } from "lucide-react"
+import { Bot, ChevronRight } from "lucide-react"
 
 interface ChatHeaderProps {
   onClose: () => void
@@ -11,7 +11,7 @@ export function ChatHeader({ onClose, title = "AI Assistant" }: ChatHeaderProps)
   return (
     <div className="h-12 border-b border-sidebar-border flex items-center justify-between px-4 bg-sidebar">
       <div className="flex items-center gap-2">
-        <MessageCircle className="h-5 w-5 text-sidebar-accent" />
+        <Bot className="h-5 w-5 text-sidebar-foreground" />
         <span className="font-medium text-sidebar-foreground">{title}</span>
       </div>
       <Button

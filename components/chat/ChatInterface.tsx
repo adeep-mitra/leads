@@ -1,11 +1,13 @@
 "use client"
 
-import type React from "react"
+import React from "react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { ChatMessage } from "./ChatMessage"
 import { ChatInput } from "./ChatInput"
 import { ChatHeader } from "./ChatHeader"
+import { ResizeHandle } from "./ResizeHandle"
 import { useChat } from "@/hooks/useChat"
+import { useResizable } from "@/hooks/useResizable"
 import type { Message } from "@/types/chat"
 
 interface ChatInterfaceProps {
@@ -14,6 +16,10 @@ interface ChatInterfaceProps {
   initialMessages?: Message[]
   onSendMessage?: (content: string) => Promise<Message>
   className?: string
+  onWidthChange?: (width: number) => void
+  initialWidth?: number
+  minWidth?: number
+  maxWidth?: number
 }
 
 export function ChatInterface({ 
@@ -21,16 +27,37 @@ export function ChatInterface({
   onClose, 
   initialMessages = [],
   onSendMessage,
-  className = ""
+  className = "",
+  onWidthChange,
+  initialWidth = 320,
+  minWidth = 240,
+  maxWidth = 800
 }: ChatInterfaceProps) {
   const chat = useChat({ initialMessages, onSendMessage })
+  const { width, isResizing, startResize, resizeRef } = useResizable({
+    initialWidth,
+    minWidth,
+    maxWidth,
+    direction: 'left'
+  })
+
+  // Notify parent of width changes
+  React.useEffect(() => {
+    onWidthChange?.(width)
+  }, [width, onWidthChange])
 
   return (
     <div
-      className={`fixed right-0 top-0 h-full w-80 bg-sidebar border-l border-sidebar-border transition-transform duration-300 ${
+      ref={resizeRef}
+      className={`fixed right-0 top-0 h-full bg-sidebar border-l border-sidebar-border ${
         isOpen ? "translate-x-0" : "translate-x-full"
-      } ${className}`}
+      } ${isResizing ? 'transition-none' : 'transition-transform duration-300'} ${className}`}
+      style={{ width: `${width}px` }}
     >
+      {isOpen && (
+        <ResizeHandle onMouseDown={startResize} direction="left" />
+      )}
+      
       <ChatHeader onClose={onClose} />
 
       {/* Messages Area */}

@@ -8,11 +8,15 @@ import { ChatInterface } from "@/components/chat"
 
 export default function HomePage() {
   const [isChatOpen, setIsChatOpen] = useState(true)
+  const [chatWidth, setChatWidth] = useState(320)
 
   return (
     <div className="flex h-screen bg-background">
       {/* Main Workspace */}
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${isChatOpen ? "mr-80" : "mr-0"}`}>
+      <div 
+        className={`flex-1 flex flex-col ${isChatOpen ? 'transition-all duration-300' : 'transition-all duration-300'}`}
+        style={{ marginRight: isChatOpen ? `${chatWidth}px` : '0' }}
+      >
         {/* Top Toolbar */}
         <div className="h-12 border-b border-border flex items-center justify-between px-4 bg-card">
           <div className="flex items-center gap-2">
@@ -29,7 +33,11 @@ export default function HomePage() {
       {/* Chat Interface */}
       <ChatInterface 
         isOpen={isChatOpen} 
-        onClose={() => setIsChatOpen(false)} 
+        onClose={() => setIsChatOpen(false)}
+        onWidthChange={setChatWidth}
+        initialWidth={320}
+        minWidth={240}
+        maxWidth={800}
       />
     </div>
   )
