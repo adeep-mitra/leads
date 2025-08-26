@@ -5,6 +5,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { MessageCircle } from "lucide-react"
 import { ChatInterface } from "@/components/chat"
+import { Sidebar } from "@/components/sidebar"
 
 export default function HomePage() {
   const [isChatOpen, setIsChatOpen] = useState(true)
@@ -12,6 +13,9 @@ export default function HomePage() {
 
   return (
     <div className="flex h-screen bg-background">
+      {/* Sidebar */}
+      <Sidebar />
+      
       {/* Main Workspace */}
       <div 
         className={`flex-1 flex flex-col ${isChatOpen ? 'transition-all duration-300' : 'transition-all duration-300'}`}
