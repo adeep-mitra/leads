@@ -1,36 +1,235 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Food Safety Permits Database
 
-## Getting Started
+A Next.js application with a PostgreSQL database for managing and analyzing food safety permit data.
 
-First, run the development server:
+## 🗂️ Database Schema
+
+The database is designed with a normalized relational structure:
+
+### Tables
+
+- **businesses** - Core business information (UUID primary key)
+- **addresses** - Normalized address data
+- **permits** - Junction table linking businesses to permit types
+- **permit_types** - Lookup table for permit categories
+- **suburbs** - Lookup table for suburbs
+
+### Views
+
+- **business_details** - Complete business information with joined data
+- **permit_statistics** - Aggregated statistics by permit type
+- **suburb_analysis** - Analysis by suburb with averages
+- **rating_distribution** - Distribution of safety ratings
+
+## 🚀 Setup Instructions
+
+### 1. Prerequisites
+
+- Node.js 18+ 
+- PostgreSQL database (Neon recommended)
+- Your CSV file: `food-safety-permits.csv`
+
+### 2. Database Setup (Neon)
+
+1. Create a Neon account at [neon.tech](https://neon.tech)
+2. Create a new database
+3. Copy your connection string
+
+### 3. Environment Configuration
+
+1. Copy the environment template:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Update `.env` with your Neon database URL:
+   ```
+   DATABASE_URL=postgresql://username:password@your-neon-host.neon.tech/your-database-name?sslmode=require
+   ```
+
+### 4. Install Dependencies
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 5. Place Your CSV File
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Ensure `food-safety-permits.csv` is in the project root directory.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 6. Run Migration
 
-## Learn More
+```bash
+npm run migrate
+```
 
-To learn more about Next.js, take a look at the following resources:
+This will:
+- Create the database schema
+- Import and clean the CSV data
+- Populate all tables with normalized data
+- Display statistics and sample data
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📊 Data Processing
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The migration script performs comprehensive data cleaning:
 
-## Deploy on Vercel
+### Phone Number Cleaning
+- Standardizes to international format (+61 for Australia)
+- Removes invalid/empty numbers
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Rating Validation
+- Extracts valid ratings (3, 4, 5) from mixed data
+- Handles cases where suburb names were incorrectly placed in rating column
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Address Normalization
+- Separates full addresses into components
+- Links addresses to suburb lookup table
+
+### Permit Type Processing
+- Parses comma-separated permit types
+- Creates normalized many-to-many relationships
+
+## 🔍 Database Operations
+
+### Using the Database Service
+
+```typescript
+import { getDatabase } from '@/lib/database';
+
+const db = getDatabase();
+
+// Get all businesses
+const businesses = await db.getAllBusinesses();
+
+// Search businesses
+const results = await db.searchBusinesses('Otto');
+
+// Get by rating
+const topRated = await db.getBusinessesByRating(5);
+
+// Get statistics
+const stats = await db.getPermitStatistics();
+const summary = await db.getDatabaseSummary();
+```
+
+### Direct SQL Queries
+
+```typescript
+const db = getDatabase();
+
+// Custom query
+const result = await db.query(
+  'SELECT * FROM businesses WHERE eat_safe_rating = $1',
+  [5]
+);
+```
+
+## 📈 Available Views and Queries
+
+### Business Details View
+```sql
+SELECT * FROM business_details 
+WHERE suburb_name = 'Brisbane City'
+ORDER BY eat_safe_rating DESC;
+```
+
+### Permit Statistics
+```sql
+SELECT * FROM permit_statistics 
+WHERE business_count > 100
+ORDER BY avg_rating DESC;
+```
+
+### Suburb Analysis
+```sql
+SELECT * FROM suburb_analysis 
+WHERE business_count >= 10
+ORDER BY avg_rating DESC;
+```
+
+### Rating Distribution
+```sql
+SELECT * FROM rating_distribution;
+```
+
+## 🏗️ Database Schema Features
+
+### Performance Optimizations
+- **Indexes**: Full-text search on business names and suburbs
+- **UUID Primary Keys**: Better for distributed systems
+- **Timestamps**: Automatic created_at/updated_at tracking
+
+### Data Integrity
+- **Foreign Key Constraints**: Maintain referential integrity
+- **Check Constraints**: Validate rating ranges (1-5)
+- **Unique Constraints**: Prevent duplicate permit assignments
+
+### Advanced Features
+- **Triggers**: Auto-update timestamps
+- **Views**: Pre-computed aggregations
+- **Full-text Search**: GIN indexes for efficient searching
+
+## 📋 Data Quality Report
+
+After migration, you'll see statistics like:
+
+```
+=== Database Statistics ===
+Businesses: 7,442
+Permits: 12,589
+Suburbs: 156
+Permit Types: 23
+
+=== Top Permit Types ===
+Cafe/Restaurant: 2,297 businesses (avg rating: 4.2)
+Takeaway Food: 782 businesses (avg rating: 4.1)
+Food Stall: 413 businesses (avg rating: 4.3)
+```
+
+## 🔧 Maintenance
+
+### Re-running Migration
+If you need to re-run the migration:
+
+```bash
+npm run migrate
+```
+
+The script safely drops and recreates tables.
+
+### Database Backup
+For Neon databases, backups are handled automatically, but you can also export:
+
+```bash
+pg_dump $DATABASE_URL > backup.sql
+```
+
+## 🚨 Troubleshooting
+
+### Common Issues
+
+1. **Connection Error**: Verify your `DATABASE_URL` in `.env`
+2. **CSV Not Found**: Ensure `food-safety-permits.csv` is in project root
+3. **Permission Errors**: Check database user permissions for CREATE/DROP operations
+
+### Debugging
+
+Enable query logging by setting:
+```
+NODE_ENV=development
+```
+
+## 📚 Next Steps
+
+1. Build API endpoints using the database service
+2. Create dashboard components for data visualization
+3. Add data export functionality
+4. Implement real-time updates
+
+## 🤝 Contributing
+
+When making schema changes:
+1. Update `database/schema.sql`
+2. Update TypeScript interfaces in `lib/database.ts`
+3. Test migration with sample data
+4. Update this README

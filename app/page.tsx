@@ -1,103 +1,148 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import type React from "react"
+
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { MessageCircle, Send, Code, FileText, Settings, ChevronRight } from "lucide-react"
+
+interface Message {
+  id: number
+  content: string
+  sender: "user" | "assistant"
+  timestamp: Date
+}
+
+export default function CursorInterface() {
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 1,
+      content: "Hello! I'm your AI coding assistant. How can I help you today?",
+      sender: "assistant",
+      timestamp: new Date(),
+    },
+  ])
+  const [inputValue, setInputValue] = useState("")
+  const [isChatOpen, setIsChatOpen] = useState(true)
+
+  const sendMessage = () => {
+    if (!inputValue.trim()) return
+
+    const newMessage: Message = {
+      id: messages.length + 1,
+      content: inputValue,
+      sender: "user",
+      timestamp: new Date(),
+    }
+
+    setMessages([...messages, newMessage])
+    setInputValue("")
+
+    // Simulate assistant response
+    setTimeout(() => {
+      const assistantMessage: Message = {
+        id: messages.length + 2,
+        content: "I understand you need help with that. Let me assist you with your coding task.",
+        sender: "assistant",
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, assistantMessage])
+    }, 1000)
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      sendMessage()
+    }
+  }
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="flex h-screen bg-background">
+      {/* Main Workspace */}
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${isChatOpen ? "mr-80" : "mr-0"}`}>
+        {/* Top Toolbar */}
+        <div className="h-12 border-b border-border flex items-center justify-between px-4 bg-card">
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-sm text-muted-foreground">leads</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setIsChatOpen(!isChatOpen)}>
+              <MessageCircle className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+
+      {/* Chat Sidebar */}
+      <div
+        className={`fixed right-0 top-0 h-full w-80 bg-sidebar border-l border-sidebar-border transition-transform duration-300 ${
+          isChatOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        {/* Chat Header */}
+        <div className="h-12 border-b border-sidebar-border flex items-center justify-between px-4 bg-sidebar">
+          <div className="flex items-center gap-2">
+            <MessageCircle className="h-5 w-5 text-sidebar-accent" />
+            <span className="font-medium text-sidebar-foreground">AI Assistant</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsChatOpen(false)}
+            className="text-sidebar-foreground hover:bg-sidebar-accent/10"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Messages Area */}
+        <ScrollArea className="flex-1 h-[calc(100vh-8rem)]">
+          <div className="p-4 space-y-4">
+            {messages.map((message) => (
+              <div key={message.id} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
+                <div
+                  className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+                    message.sender === "user"
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                      : "bg-card text-card-foreground border border-sidebar-border"
+                  }`}
+                >
+                  <p className="leading-relaxed">{message.content}</p>
+                  <span className="text-xs opacity-70 mt-1 block">
+                    {message.timestamp.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+
+        {/* Input Area */}
+        <div className="p-4 border-t border-sidebar-border bg-sidebar">
+          <div className="flex gap-2">
+            <Input
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Ask me anything..."
+              className="flex-1 bg-input border-sidebar-border text-sidebar-foreground placeholder:text-muted-foreground"
+            />
+            <Button
+              onClick={sendMessage}
+              size="sm"
+              className="bg-sidebar-accent hover:bg-sidebar-accent/90 text-sidebar-accent-foreground"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
-  );
+  )
 }
